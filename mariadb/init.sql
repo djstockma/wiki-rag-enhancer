@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS test (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    content TEXT,
+    embedding VECTOR(4) NOT NULL
+);
