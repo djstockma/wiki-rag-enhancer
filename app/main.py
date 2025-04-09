@@ -1,32 +1,37 @@
 import mariadb
 import time
 import sys
-import wikipedia
+import requests
 
-MAX_RETRIES = 10
-RETRY_DELAY = 3  # seconds
+time.sleep(10) # Gives mariadb time to start
 
-for attempt in range(1, MAX_RETRIES + 1):
-    try:
-        conn = mariadb.connect(
-            user="raguser",
-            password="ragpass",
-            host="mariadb",
-            port=3306,
-            database="ragdb"
-        )
-        print(" Connected to MariaDB!")
-        cur = conn.cursor()
-        cur.execute("SELECT 'Hello from MariaDB!'")
-        print(cur.fetchone()[0])
-        testvalue = wikipedia.summary("Wikipedia")
-        print(testvalue)
-        break  # Exit the loop if connection is successful
+try:
+    # Test mariadb connection
+    conn = mariadb.connect(
+        user="raguser",
+        password="ragpass",
+        host="mariadb",
+        port=3306,
+        database="ragdb"
+    )
+    print(" Connected to MariaDB!")
+    cur = conn.cursor()
+    cur.execute("SELECT 'Hello from MariaDB!'")
+    print(cur.fetchone()[0])
+    cur.execute("SELECT * FROM test")
+    print(cur.fetchall())
 
-    except mariadb.Error as e:
-        print(f"Attempt {attempt}: Could not connect to MariaDB: {e}")
-        if attempt < MAX_RETRIES:
-            time.sleep(RETRY_DELAY)
+    # Test wikipedia fetching
+    def fetch_wikipedia_summary(title):
+        url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{title}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.json().get("extract")
         else:
-            print("Max retries reached, exiting.")
-            sys.exit(1)
+            return f"Error: {response.status_code}"
+    summary = fetch_wikipedia_summary("Jens")
+    print(summary)
+
+except mariadb.Error as e:
+    print(f"Attempt failed: Could not connect to MariaDB: {e}")
+
