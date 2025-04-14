@@ -21,3 +21,6 @@ OR run it in docker using:
 ```
 Docker-compose up --build
 ```
+
+Warning: the library sentence-transformers is quite and contains a fair amount of other dependencies. Consider using something like venv for development!
+
