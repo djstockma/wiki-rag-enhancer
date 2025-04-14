@@ -17,6 +17,8 @@ services:
 
   app:
     build: ./app
+    env_file:
+      - .env
     container_name: wiki_checker
     depends_on:
       - mariadb
