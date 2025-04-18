@@ -1,6 +1,7 @@
 import mariadb
 import numpy as np
 import os
+import json
 
 def get_connection():
     print(os.getenv("DB_USER"))
@@ -29,17 +30,19 @@ def insert_embedding(conn, title, chunk_index, chunk_text, embedding, language="
     cur.execute(query, (title, chunk_index, chunk_text, embedding, language))
     conn.commit()
 
-def find_best_match(conn, user_vector, n = 1):
+def find_best_match(conn, user_vector, n):
     cursor = conn.cursor()
+
+    vector_str = json.dumps(user_vector.tolist())
 
     query = f"""
         SELECT id, chunk_text, embedding, article_title
         FROM wiki_embeddings
-        ORDER BY VEC_DISTANCE_EUCLIDEAN(embedding, Vec_FromText(?))
+        ORDER BY VEC_DISTANCE_COSINE(embedding, VEC_FromText(?))
         LIMIT {n}
     """
-    cursor.execute(query, [user_vector])  # Pass vector as string
-    result = cursor.fetchone()
+    cursor.execute(query, [vector_str])  # Pass vector as string
+    result = cursor.fetchall()
 
     conn.close()
     return result
