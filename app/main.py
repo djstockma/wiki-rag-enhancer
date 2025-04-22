@@ -18,10 +18,12 @@ def main():
     
     embed_articles()       # Go through the json, embed chunks and insert into db
     
-    input_text = "One could mix up helsingfors and helsingborg, ending up in an old swedish city instead of a finnish one"
-    result = find_matches(input_text)
-    print(f"Here's the top result:") 
-    print(f"Article name: {result[3]} \n\n Content: {result[1]}")
+    input_text = "Helsinki (Helsingfors in Swedish) is the current capital of Finland, and it should not be confused with the Swedish city of Helsingborg, which is a city in south-western Sweden. Helsingborg, in fact, is closer to Denmark than Finland. Before Helsinki became capital, Turku was the capital of Finland, until it burned down."
+    result = find_matches(input_text, 4) # Number of matches is optional, default=1
+    print(f"Here are the top {len(result)} result(s):")
+    for i, chunk in enumerate(result):
+        print(f"Chunk {i + 1} (from article '{chunk[3]}'): {chunk[1]}")
+    # print(f"Article name: {result[3]} \n\n Content: {result[1]}")
 
 if __name__ == "__main__":
     main()
