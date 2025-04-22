@@ -4,11 +4,6 @@ import os
 import json
 
 def get_connection():
-    print(os.getenv("DB_USER"))
-    print(os.getenv("DB_PASS"))
-    print(os.getenv("DB_HOST"))
-    print(os.getenv("DB_PORT"))
-    print(os.getenv("DB_NAME"))
     return mariadb.connect(
         user=os.getenv("DB_USER", "root"),
         password=os.getenv("DB_PASS", "password"),

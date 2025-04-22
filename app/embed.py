@@ -18,7 +18,6 @@ def embed_articles(json_path="wiki_data/raw_wiki_content.json", language="en"):
         print(f"\n Processing article: {title}")
         chunks = chunk_text(content, max_tokens=150)
         embeddings = model.encode(chunks, convert_to_numpy=True)
-        print(embeddings.shape)
         for idx, (chunk, vector) in enumerate(zip(chunks, embeddings)):
             insert_embedding(
                 conn,
