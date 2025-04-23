@@ -13,12 +13,12 @@ time.sleep(4) # Gives mariadb time to start
 def main():
 
     # For testing: this is commented out so the test data is used, and not fetched again every time
-    #titles = ["Helsingfors", "Åbo", "Nykarleby", "Kokkola"]
+    #titles = ["Helsingfors", "Åbo", "Nykarleby", "Kokkola", "Mattlidens gymnasium", "Aalto university", "München", "Pope Franciskus", "Hotwheels"]
     #fetch_pages(titles=titles)              # saves raw_wiki_content.json
     
-    embed_articles()       # Go through the json, embed chunks and insert into db
+    #embed_articles()       # Go through the json, embed chunks and insert into db
     
-    input_text = "Helsinki (Helsingfors in Swedish) is the current capital of Finland, and it should not be confused with the Swedish city of Helsingborg, which is a city in south-western Sweden. Helsingborg, in fact, is closer to Denmark than Finland. Before Helsinki became capital, Turku was the capital of Finland, until it burned down."
+    input_text = "Some random yappayappa about the pope and the vatican city. The catholic church. May Pope franciskus rest in peace."
     result = find_matches(input_text, 4) # Number of matches is optional, default=1
     print(f"Here are the top {len(result)} result(s):")
     for i, chunk in enumerate(result):
