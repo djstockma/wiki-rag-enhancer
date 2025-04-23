@@ -8,3 +8,6 @@ __pycache__/
 *.pyd
 *.sqlite3
 *.log
+
+# Raw json test data
+/app/wiki_data
