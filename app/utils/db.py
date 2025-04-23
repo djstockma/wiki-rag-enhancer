@@ -30,6 +30,17 @@ def insert_embedding(conn, title, chunk_index, chunk_text, embedding, language="
     cur.execute(query, (title, chunk_index, chunk_text, embedding, language))
     conn.commit()
 
+
+def delete_embeddings(conn): #FIXME: this is not a god solution for prod maybe :)
+    cur = conn.cursor()
+
+    query = """
+        TRUNCATE TABLE wiki_embeddings
+    """
+    cur.execute(query)
+    conn.commit()
+
+
 def find_best_match(conn, user_vector, n):
     cursor = conn.cursor()
 
@@ -46,3 +57,28 @@ def find_best_match(conn, user_vector, n):
 
     conn.close()
     return result
+
+def get_relevant_article_counts(conn, user_vector, n: int = 1000) -> dict[str, int]:
+    """Returns a dict mapping where the key is the article name, 
+    and the value is the number of appearances"""
+    #FIXME: add normalisation based on number of article chunks somewhere?
+    cursor = conn.cursor()
+    dict = {}
+    vector_str = json.dumps(user_vector.tolist())
+    query = f"""
+        SELECT id, chunk_text, embedding, article_title
+        FROM wiki_embeddings
+        ORDER BY VEC_DISTANCE_COSINE(embedding, VEC_FromText(?))
+        LIMIT {n}
+    """
+    cursor.execute(query, [vector_str])
+    rows = cursor.fetchall()
+
+    for row in rows:
+        title = row[3]
+        if title in dict:
+            dict[title] = dict[title] + 1
+        else:
+            dict [title] = 1
+    
+    return dict

@@ -1,6 +1,6 @@
 import json
 from sentence_transformers import SentenceTransformer
-from utils.db import get_connection, insert_embedding
+from utils.db import get_connection, insert_embedding, delete_embeddings
 from utils.text_utils import chunk_text
 
 def embed_articles(json_path="wiki_data/raw_wiki_content.json", language="en"):
@@ -13,6 +13,9 @@ def embed_articles(json_path="wiki_data/raw_wiki_content.json", language="en"):
 
     print(" Connecting to MariaDB...")
     conn = get_connection()
+
+    print("Truncating old embedding table...")
+    delete_embeddings(conn)
 
     for title, content in articles.items():
         print(f"\n Processing article: {title}")

@@ -10,4 +10,4 @@ __pycache__/
 *.log
 
 # Raw json test data
-/app/wiki_data
+app/wiki_data
