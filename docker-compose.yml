@@ -16,7 +16,8 @@ services:
       - ./mariadb:/docker-entrypoint-initdb.d
 
   app:
-    build: ./app
+    build: 
+      context: ./app
     env_file:
       - .env
     container_name: wiki_checker
@@ -25,4 +26,7 @@ services:
     volumes:
       - ./app:/app
     working_dir: /app
-    command: ["python", "main.py"]
+    ports:
+      - "8501:8501"
+    command: ["streamlit", "run", "app_ui.py", "--server.headless=true", "--server.runOnSave=false"]
+
