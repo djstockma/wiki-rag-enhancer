@@ -36,18 +36,27 @@ def delete_embeddings(conn): #FIXME: this is not a god solution for prod maybe :
     conn.commit()
 
 
-def find_best_match(conn, user_vector, n):
+def find_best_match(conn, user_vector, n, articles: list[str] = []) -> list[(str, str, str, str)]:
     cursor = conn.cursor()
 
     vector_str = json.dumps(user_vector.tolist())
+    params = []
+    article_filter = ""
+    if articles:
+        placeholders = ','.join('?' for _ in articles)
+        article_filter = f"WHERE article_title IN ({placeholders})"
+        params.extend(articles)
+    params.append(vector_str)
 
     query = f"""
         SELECT id, chunk_text, embedding, article_title
         FROM wiki_embeddings
+        {article_filter}
         ORDER BY VEC_DISTANCE_COSINE(embedding, VEC_FromText(?))
         LIMIT {n}
     """
-    cursor.execute(query, [vector_str])  # Pass vector as string
+
+    cursor.execute(query, params)  # Pass vector as string, and also article names
     result = cursor.fetchall()
 
     conn.close()
