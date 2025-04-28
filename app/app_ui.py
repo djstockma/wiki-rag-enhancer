@@ -1,7 +1,6 @@
 import streamlit as st
-from fetch_wikipedia import fetch_pages
+from load_db import load_db
 from find_matches import find_matches, find_relevant_articles
-from embed import embed_articles
 
 def main():
     st.set_page_config(page_title="Wikipedia RAG enhancer", layout="wide")
@@ -16,7 +15,7 @@ def main():
 
     if st.sidebar.button("Run Embedding"):
         with st.spinner("Embedding Wikipedia articles..."):
-            n_of_embedded_articles = embed_articles()
+            n_of_embedded_articles = load_db()
         st.sidebar.success(f"Embedding complete! {n_of_embedded_articles} articles embedded")
 
     if "selected_chunks" not in st.session_state:

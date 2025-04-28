@@ -1,6 +1,6 @@
 mariadb==1.1.7
 requests
-wikipedia
+wikipedia-api
 sentence-transformers
 streamlit
 
