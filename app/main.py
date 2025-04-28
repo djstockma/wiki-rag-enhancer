@@ -1,7 +1,4 @@
-import mariadb
 import time
-import sys
-import requests
 from fetch_wikipedia import fetch_pages
 from embed import embed_articles
 from find_matches import find_matches, find_relevant_articles
@@ -16,7 +13,7 @@ def main():
     #titles = ["Helsingfors", "Åbo", "Nykarleby", "Kokkola", "Mattlidens gymnasium", "Aalto university", "München", "Pope Franciskus", "Hotwheels"]
     #fetch_pages(titles=titles)              # saves raw_wiki_content.json
     
-    #embed_articles()       # Go through the json, embed chunks and insert into db
+    embed_articles()       # Go through the json, embed chunks and insert into db
     
     input_text = "Let's say i type something about esbo, which is a town in uusimaa. It also contains mattby. Where would this take me?"
     

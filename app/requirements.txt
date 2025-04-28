@@ -2,3 +2,5 @@ mariadb==1.1.7
 requests
 wikipedia
 sentence-transformers
+streamlit
+

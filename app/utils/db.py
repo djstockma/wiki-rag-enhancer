@@ -12,6 +12,7 @@ def get_connection():
         database=os.getenv("DB_NAME", "ragdb")
     )
 
+
 def insert_embedding(conn, title, chunk_index, chunk_text, embedding, language="en"):
     cur = conn.cursor()
     # Convert vector to list or binary as needed
@@ -47,7 +48,6 @@ def find_best_match(conn, user_vector, n, articles: list[str] = []) -> list[(str
         article_filter = f"WHERE article_title IN ({placeholders})"
         params.extend(articles)
     params.append(vector_str)
-
     query = f"""
         SELECT id, chunk_text, embedding, article_title
         FROM wiki_embeddings
@@ -55,12 +55,11 @@ def find_best_match(conn, user_vector, n, articles: list[str] = []) -> list[(str
         ORDER BY VEC_DISTANCE_COSINE(embedding, VEC_FromText(?))
         LIMIT {n}
     """
-
     cursor.execute(query, params)  # Pass vector as string, and also article names
     result = cursor.fetchall()
-
     conn.close()
     return result
+
 
 def get_relevant_article_counts(conn, user_vector, n: int = 1000) -> dict[str, int]:
     """Returns a dict mapping where the key is the article name, 
