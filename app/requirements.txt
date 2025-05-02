@@ -3,4 +3,5 @@ requests
 wikipedia-api
 sentence-transformers
 streamlit
+torch
 

@@ -13,11 +13,11 @@ def main():
     n_articles = st.sidebar.slider("How many articles to fetch", min_value=1, max_value=10, value=3)
     n_chunks_per_article = st.sidebar.slider("How many chunks per article", min_value=1, max_value=50, value=2)
 
-    if st.sidebar.button("Run Embedding"):
+    st.sidebar.subheader("Wikipedia and embedding")
+    if st.sidebar.button("Load data from wikipedia and Embed"):
         with st.spinner("Embedding Wikipedia articles..."):
             n_of_embedded_articles = load_db()
         st.sidebar.success(f"Embedding complete! {n_of_embedded_articles} articles embedded")
-
     if "selected_chunks" not in st.session_state:
         st.session_state.selected_chunks = {}
 
