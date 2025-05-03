@@ -64,6 +64,9 @@ def main():
             st.subheader(f"{article_title}")
             for idx, chunk in enumerate(chunks, 1):
                 chunk_text = chunk[1]
+                chunk_certainty = chunk[4]
+                chunk_number = chunk[4]
+                st.markdown(f"#### Chunk {chunk_number} (Certainty: {chunk_certainty:.2f})")
                 key = f"{article_title}_{idx}"
 
                 # Default value depends on session_state
