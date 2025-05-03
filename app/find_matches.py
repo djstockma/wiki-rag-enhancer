@@ -3,7 +3,7 @@ from utils.embedding import embed_text
 from utils.db import get_connection
 
 def find_matches(text, n_chunks=1, article: str = None):
-    """Fetches n matches for ONE article. Returns list[id, text, embedding, article_title]"""
+    """Fetches n matches for ONE article. Returns list[id, text, embedding, article_title, chunk_index, certainty]"""
     conn = get_connection()
     embedded = embed_text(text)
     if article:

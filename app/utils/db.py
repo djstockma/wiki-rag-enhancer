@@ -37,19 +37,21 @@ def delete_embeddings(conn): #FIXME: this is not a god solution for prod maybe :
     conn.commit()
 
 
-def find_best_match(conn, user_vector, n, articles: list[str] = []) -> list[(str, str, str, str)]:
+def find_best_match(conn, user_vector, n, articles: list[str] = []) -> list[(str, str, str, str, str, str)]:
     cursor = conn.cursor()
 
     vector_str = json.dumps(user_vector.tolist())
     params = []
+    params.append(vector_str) # For SELECT
     article_filter = ""
     if articles:
         placeholders = ','.join('?' for _ in articles)
         article_filter = f"WHERE article_title IN ({placeholders})"
-        params.extend(articles)
-    params.append(vector_str)
+        params.extend(articles) # For WHERE IN clause
+    params.append(vector_str) # For ORDER BY
     query = f"""
-        SELECT id, chunk_text, embedding, article_title
+        SELECT id, chunk_text, embedding, article_title, chunk_index,
+            1 - VEC_DISTANCE_COSINE(embedding, VEC_FromText(?)) AS certainty
         FROM wiki_embeddings
         {article_filter}
         ORDER BY VEC_DISTANCE_COSINE(embedding, VEC_FromText(?))
@@ -57,8 +59,10 @@ def find_best_match(conn, user_vector, n, articles: list[str] = []) -> list[(str
     """
     cursor.execute(query, params)  # Pass vector as string, and also article names
     result = cursor.fetchall()
+    result_sorted = sorted(result, key=lambda x: (x[3], x[0]))  # (article_title, id)
+
     conn.close()
-    return result
+    return result_sorted
 
 
 def get_relevant_article_counts(conn, user_vector, n: int = 1000) -> dict[str, int]:
