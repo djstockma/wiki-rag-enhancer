@@ -20,20 +20,34 @@ def get_titles(file_path: str) -> list:
 
 
 def embed_articles(conn, pages: dict, model, language="en") -> int:
-    for title, content in pages.items():
-        chunks = chunk_text(content)
+    for combined_title, section_text in pages.items():
+        chunks = chunk_text(section_text)
         embeddings = model.encode(chunks, convert_to_numpy=True)
         for idx, (chunk, vector) in enumerate(zip(chunks, embeddings)):
             insert_embedding(
                 conn,
-                title=title,
+                title=combined_title,
                 chunk_index=idx,
                 chunk_text=chunk,
                 embedding=vector,
                 language=language
             )
+    return len(pages)
 
-    return(len(pages.items()))
+def extract_sections(page, level=0):
+    section_texts = []
+
+    def recurse(sections, parent_title=""):
+        for section in sections:
+            # Create a hierarchical title (e.g., "Introduction > History")
+            section_title = f"{parent_title} > {section.title}" if parent_title else section.title
+            text = section.text.strip()
+            if text:
+                section_texts.append((section_title, text))
+            recurse(section.sections, parent_title=section_title)
+
+    recurse(page.sections)
+    return section_texts
 
 
 def fetch_pages_batch(titles, lang="en", batch_size=100, sleep_time=0.5) -> int:
@@ -56,7 +70,11 @@ def fetch_pages_batch(titles, lang="en", batch_size=100, sleep_time=0.5) -> int:
         for title in batch_titles:
             page = wiki_wiki.page(title)
             if page.exists():
-                pages[title] = page.text
+                pages[f"{title}"] = page.summary
+                section_texts = extract_sections(page)
+                for section_title, section_text in section_texts:
+                    combined_title = f"{title} - {section_title}" if section_title else title
+                    pages[combined_title] = section_text
                 total += 1
             else:
                 logger.info(f"Page not found: {title}")
@@ -73,8 +91,8 @@ def fetch_pages_batch(titles, lang="en", batch_size=100, sleep_time=0.5) -> int:
     return total_pages
 
 
-def load_db(file_path: str = "wiki_data/articles_test.csv") -> int:
-    titles = get_titles(file_path=file_path)
+def load_db() -> int:
+    titles = get_titles(file_path="wiki_data/articles_test.csv")
     return fetch_pages_batch(titles, lang="fi")
 
 
