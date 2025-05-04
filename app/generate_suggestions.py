@@ -6,12 +6,13 @@ from utils.logging_config import get_logger
 load_dotenv()
 logger = get_logger()
 
-def suggest_wikipedia_additions(wiki_chunks: list[str], source_text: str, model="gpt-4o-mini") -> dict:
+def suggest_wikipedia_additions(wiki_chunks: list[dict], source_text: str, model="gpt-4o-mini") -> list[dict]:
     """
     Uses GPT to compare Wikipedia content with a source and suggest new facts to add.
 
     Args:
-        wiki_chunks (list[str]): Relevant chunks from Wikipedia.
+        wiki_chunks (list[dict]): Relevant chunks from Wikipedia with their metadata.
+            (id, text, embedding, article_title, chunk_index, certainty)
         source_text (str): The source article (e.g. news article).
         model (str): OpenAI model to use, default is gpt-4.
 
@@ -19,16 +20,25 @@ def suggest_wikipedia_additions(wiki_chunks: list[str], source_text: str, model=
         dict: JSON-parsed suggestions (structured output from GPT).
     """
 
+    # Combining the Wikipedia chunks and metadata
+    joined_chunks = ""
+    for chunk in wiki_chunks:
+        # Extract the chunk text and metadata
+        chunk_text = chunk["chunk_text"]
+        chunk_number = chunk["chunk_index"]
+        # Format the chunk with its metadata
+        joined_chunks += f"#### Chunk {chunk_number} \n{chunk_text}\n\n"
+    
     # Construct the input prompt
-    joined_chunks = "\n\n".join(wiki_chunks)
     user_prompt = f"""Your task is to:
-1. Compare the source text to the Wikipedia content.
+1. Compare the source text to the Wikipedia content chunks.
 2. Identify facts that are in the source but missing from the Wikipedia.
-3. Output proposed additions in structured JSON format like this:
+3. Output proposals for new text in structured JSON format like this:
 {{
   "proposed_additions": [
     {{
-      "fact": "Short factual statement.",
+      "chunk_id": "id of modified chunk, just the number (eg. "25")",
+      "improved_chunk": "Original chunk midified with added improvement.",
       "justification": "Why it's relevant for the article.",
       "section_hint": "Optional: which section it fits into (if any)."
     }},
@@ -52,12 +62,11 @@ Source text:
         model=model,
         instructions="You are a factual assistant helping improve Wikipedia articles by comparing them "
                       "to reliable sources and identifying missing but relevant content. "
-                      "You generate the answers in the same language as the input.",
+                      "You generate the answers in the same language as the input, and adher to linguistic conventions of wikipedia.",
         input=user_prompt
     )
 
     # Extract and try to parse the structured response
-    logger.info(response.output_text)
     reply = response.output_text
 
     # Try to safely parse JSON if it's well-formed
@@ -66,8 +75,36 @@ Source text:
         start = reply.find("{")
         end = reply.rfind("}")
         trimmed = reply[start:end + 1]
-        parsed = json.loads(trimmed)
-        return parsed
+        parsed: dict = json.loads(trimmed)
+        additions: list[dict] = parsed.get("proposed_additions")
+        for addition in additions:
+            # Ensure all required fields are present
+            if "chunk_id" not in addition or "improved_chunk" not in addition or "justification" not in addition:
+                logger.warning("Warning: Missing required fields in JSON response.") 
+                raise ValueError("Missing required fields in JSON response.")
+            
+            # Add original chunk text for reference
+            chunk_id_raw = addition["chunk_id"]
+            try:
+                chunk_id = int(chunk_id_raw)
+            except ValueError:
+                logger.warning(f"Invalid chunk_id value: {chunk_id_raw}")
+                raise ValueError(f"Invalid chunk_id value: {chunk_id_raw}")
+
+            # Find matching chunk from wiki_chunks (assumes chunk_index is at index 4)
+            original_chunk = next(
+                (chunk["chunk_text"] for chunk in wiki_chunks if int(chunk["chunk_index"]) == chunk_id),
+                None
+            )
+            if original_chunk is None:
+                logger.warning(f"No matching original chunk found for chunk_id={chunk_id}")
+            
+            addition["original_chunk"] = original_chunk
+        return additions
+    
+    except ValueError as ve:
+        logger.warning("Warning: Could not parse JSON due to value missing.")
+        return {"error": f"JSON missing value, {str(ve)}", "trimmed": trimmed}    
     except Exception as e:
         logger.warning("Warning: Could not parse JSON.")
-        return {"error": "Failed to parse JSON", "raw_output": reply, "trimmed": trimmed}
+        return {"error": f"Failed to parse JSON, {str(e)}", "raw_output": reply, "trimmed": trimmed}
