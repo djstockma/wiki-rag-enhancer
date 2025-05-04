@@ -1,6 +1,8 @@
 # Wikipedia Checker – RAG Project
 
-This project uses Retrieval-Augmented Generation (RAG) to compare real-world source articles to Wikipedia and suggest factual improvements.
+This project uses Retrieval-Augmented Generation (RAG) to compare real-world source articles to Wikipedia and suggest factual improvements. The project uses mariadb-vector as a vector database, and openai to for comparing the source to wikipedia data.
+
+This project was a part of MariaDB AI_RAG hackathon.
 
 ## Requirements
 Aside from packages in requirements.txt:
@@ -19,8 +21,6 @@ Aside from packages in requirements.txt:
 docker-compose up --build
 
 3. Open the app in your browser: http://localhost:8501
-
-MariaDB will be available on port 3306.
 
 ### Manual Setup (No Docker)
 
@@ -43,7 +43,8 @@ pip install -r requirements.txt
 ```
 #### 3. Set up MariaDB
 
-Start your local MariaDB server, then:
+Start your local MariaDB server (refer to https://mariadb.com/get-started-with-mariadb/), then:
+
 ```
 CREATE DATABASE ragdb;
 CREATE USER 'raguser'@'localhost' IDENTIFIED BY 'ragpass';

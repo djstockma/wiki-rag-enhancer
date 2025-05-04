@@ -25,9 +25,10 @@ def suggest_wikipedia_additions(wiki_chunks: list[dict], source_text: str, model
     for chunk in wiki_chunks:
         # Extract the chunk text and metadata
         chunk_text = chunk["chunk_text"]
-        chunk_number = chunk["chunk_index"]
+        chunk_number = chunk["chunk_id"]
+        chunk_title = chunk["article_title"]
         # Format the chunk with its metadata
-        joined_chunks += f"#### Chunk {chunk_number} \n{chunk_text}\n\n"
+        joined_chunks += f"#### Chunk {chunk_number} \n Title and subtitle: {chunk_title} \n Chunk Text: \n{chunk_text}\n\n"
     
     # Construct the input prompt
     user_prompt = f"""Your task is to:
@@ -37,8 +38,9 @@ def suggest_wikipedia_additions(wiki_chunks: list[dict], source_text: str, model
 {{
   "proposed_additions": [
     {{
+      "chunk_title": "(Sub)title of the chunk",
       "chunk_id": "id of modified chunk, just the number (eg. "25")",
-      "improved_chunk": "Original chunk modified with added improvement.",
+      "improved_chunk": "Original chunk text modified with added improvement.",
       "justification": "Why it's relevant for the article.",
       "section_hint": "Optional: which section it fits into (if any)."
     }},
@@ -46,7 +48,7 @@ def suggest_wikipedia_additions(wiki_chunks: list[dict], source_text: str, model
   ]
 }}
 
-Please don't remove anything from the Wikipedia content, only make additions and return the improved chunk.
+Please don't remove anything from the Wikipedia content, only make additions and return the improved chunk text (don't return the subtitle).
 
 Wikipedia content:
 <<<
@@ -97,7 +99,7 @@ Source text:
 
             # Find matching chunk from wiki_chunks (assumes chunk_index is at index 4)
             original_chunk = next(
-                (chunk["chunk_text"] for chunk in wiki_chunks if int(chunk["chunk_index"]) == chunk_id),
+                (chunk["chunk_text"] for chunk in wiki_chunks if int(chunk["chunk_id"]) == chunk_id),
                 None
             )
             if original_chunk is None:
@@ -106,7 +108,7 @@ Source text:
             
             addition["original_chunk"] = original_chunk
             final_additions.append(addition)
-        logger.info(final_additions)
+
         return final_additions
     
     except ValueError as ve:

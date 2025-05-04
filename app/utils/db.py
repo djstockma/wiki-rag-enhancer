@@ -4,6 +4,9 @@ import os
 import json
 from dotenv import load_dotenv
 
+from utils.logging_config import get_logger
+logger = get_logger()
+
 load_dotenv()
 
 def get_connection():
@@ -40,7 +43,7 @@ def delete_embeddings(conn): #FIXME: this is not a god solution for prod maybe :
     conn.commit()
 
 
-def find_best_match(conn, user_vector, n, articles: list[str] = []) -> list[(str, str, str, str, str, str)]:
+def find_best_matches(conn, user_vector, n, articles: list[str] = []):
     cursor = conn.cursor()
 
     vector_str = json.dumps(user_vector.tolist())
