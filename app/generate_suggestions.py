@@ -38,13 +38,15 @@ def suggest_wikipedia_additions(wiki_chunks: list[dict], source_text: str, model
   "proposed_additions": [
     {{
       "chunk_id": "id of modified chunk, just the number (eg. "25")",
-      "improved_chunk": "Original chunk midified with added improvement.",
+      "improved_chunk": "Original chunk modified with added improvement.",
       "justification": "Why it's relevant for the article.",
       "section_hint": "Optional: which section it fits into (if any)."
     }},
     ...
   ]
 }}
+
+Please don't remove anything from the Wikipedia content, only make additions and return the improved chunk.
 
 Wikipedia content:
 <<<
@@ -77,11 +79,13 @@ Source text:
         trimmed = reply[start:end + 1]
         parsed: dict = json.loads(trimmed)
         additions: list[dict] = parsed.get("proposed_additions")
+        logger.info(f"additions: {additions}")
+        final_additions = []
         for addition in additions:
             # Ensure all required fields are present
             if "chunk_id" not in addition or "improved_chunk" not in addition or "justification" not in addition:
                 logger.warning("Warning: Missing required fields in JSON response.") 
-                raise ValueError("Missing required fields in JSON response.")
+                continue
             
             # Add original chunk text for reference
             chunk_id_raw = addition["chunk_id"]
@@ -89,7 +93,7 @@ Source text:
                 chunk_id = int(chunk_id_raw)
             except ValueError:
                 logger.warning(f"Invalid chunk_id value: {chunk_id_raw}")
-                raise ValueError(f"Invalid chunk_id value: {chunk_id_raw}")
+                continue
 
             # Find matching chunk from wiki_chunks (assumes chunk_index is at index 4)
             original_chunk = next(
@@ -98,13 +102,16 @@ Source text:
             )
             if original_chunk is None:
                 logger.warning(f"No matching original chunk found for chunk_id={chunk_id}")
+                continue
             
             addition["original_chunk"] = original_chunk
-        return additions
+            final_additions.append(addition)
+        logger.info(final_additions)
+        return final_additions
     
     except ValueError as ve:
         logger.warning("Warning: Could not parse JSON due to value missing.")
-        return {"error": f"JSON missing value, {str(ve)}", "trimmed": trimmed}    
+        return []    
     except Exception as e:
         logger.warning("Warning: Could not parse JSON.")
-        return {"error": f"Failed to parse JSON, {str(e)}", "raw_output": reply, "trimmed": trimmed}
+        return []

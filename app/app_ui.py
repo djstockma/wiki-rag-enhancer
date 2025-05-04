@@ -3,6 +3,7 @@ from load_db import load_db
 from find_matches import find_matches, find_relevant_articles
 from generate_suggestions import suggest_wikipedia_additions
 from utils.logging_config import get_logger
+from utils.generate_markdown_diff import generate_markdown_diff
 
 logger = get_logger()
 
@@ -112,7 +113,17 @@ def main():
 
                 st.success("Suggestions generated!")
                 st.subheader("Suggested Additions to Wikipedia")
-                st.write(suggestions)
+                logger.info(f"Suggestions: {suggestions}")
+                for suggestion in suggestions:
+                    logger.info(f"Suggestion: {suggestion}")
+                    diff_markdown = generate_markdown_diff(
+                        suggestion["original_chunk"],
+                        suggestion["improved_chunk"]
+                    )
+                    st.markdown(diff_markdown)
+
+                    # Uncomment if you want to see the full suggestion
+                    #st.write(suggestion)
 
 if __name__ == "__main__":
     main()
