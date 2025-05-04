@@ -73,8 +73,8 @@ def fetch_pages_batch(titles, lang="en", batch_size=100, sleep_time=0.5) -> int:
     return total_pages
 
 
-def load_db() -> int:
-    titles = get_titles(file_path="wiki_data/articles_test.csv")
+def load_db(file_path: str = "wiki_data/articles_test.csv") -> int:
+    titles = get_titles(file_path=file_path)
     return fetch_pages_batch(titles, lang="fi")
 
 

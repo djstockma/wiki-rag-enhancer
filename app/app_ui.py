@@ -1,6 +1,11 @@
 import streamlit as st
 from load_db import load_db
 from find_matches import find_matches, find_relevant_articles
+from generate_suggestions import suggest_wikipedia_additions
+from utils.logging_config import get_logger
+from utils.generate_markdown_diff import generate_markdown_diff
+
+logger = get_logger()
 
 def main():
     st.set_page_config(page_title="Wikipedia RAG enhancer", layout="wide")
@@ -88,14 +93,37 @@ def main():
                     if st.session_state.selected_chunks.get(key):
                         selected_data.append({
                             "article_title": article_title,
-                            "chunk_text": chunk[1]
+                            "chunk_text": chunk[1],
+                            "chunk_index": chunk[4],
                         })
 
-            if selected_data:
-                st.success(f"{len(selected_data)} chunks selected!")
-                st.write(selected_data)
-            else:
+            if not selected_data:
                 st.warning("Please select at least one chunk.")
+            else:
+                article_titles = list(set(d["article_title"] for d in selected_data))
+                if len(article_titles) > 1:
+                    st.error("Please select chunks from only one article.")
+                    return
+
+                with st.spinner("Generating LLM suggestions..."):
+                    suggestions = suggest_wikipedia_additions(
+                        wiki_chunks=selected_data,
+                        source_text=source_text,
+                    )
+
+                st.success("Suggestions generated!")
+                st.subheader("Suggested Additions to Wikipedia")
+                logger.info(f"Suggestions: {suggestions}")
+                for suggestion in suggestions:
+                    logger.info(f"Suggestion: {suggestion}")
+                    diff_markdown = generate_markdown_diff(
+                        suggestion["original_chunk"],
+                        suggestion["improved_chunk"]
+                    )
+                    st.markdown(diff_markdown)
+
+                    # Uncomment if you want to see the full suggestion
+                    #st.write(suggestion)
 
 if __name__ == "__main__":
     main()

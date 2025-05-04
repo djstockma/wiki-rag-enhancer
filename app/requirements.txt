@@ -4,4 +4,6 @@ wikipedia-api
 sentence-transformers
 streamlit
 torch
+openai
+dotenv
 
