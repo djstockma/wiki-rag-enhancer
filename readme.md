@@ -1,26 +1,73 @@
-## Git wiki enhancer
+# Wikipedia Checker – RAG Project
 
-This solution uses RAG to analyze whether a source or text could be used to enhance the knowledge base of wikipedia.
+This project uses Retrieval-Augmented Generation (RAG) to compare real-world source articles to Wikipedia and suggest factual improvements.
 
-### Components:
+## Requirements
+Aside from packages in requirements.txt:
+* Python 3.10+
+* MariaDB (if running locally)
+* pip or conda (if running locally)
 
 
+## Project Setup
 
-### Running:
-For now: either install dependancies locally:
+### Using Docker
+
+1. Make sure Docker and Docker Compose are installed.
+2. In the project root, run:
+
+docker-compose up --build
+
+3. Open the app in your browser: http://localhost:8501
+
+MariaDB will be available on port 3306.
+
+### Manual Setup (No Docker)
+
+#### 1. Create a virtual environment
+
+With venv:
 ```
-pip install --no-cache-dir -r requirements.txt
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
+Or with Conda:
+```
+conda create -n wiki-checker python=3.10
+conda activate wiki-checker
+```
+#### 2. Install Python dependencies
+```
+cd app
+pip install -r requirements.txt
+```
+#### 3. Set up MariaDB
 
-Amd then simply run:
+Start your local MariaDB server, then:
 ```
-python main.py
+CREATE DATABASE ragdb;
+CREATE USER 'raguser'@'localhost' IDENTIFIED BY 'ragpass';
+GRANT ALL PRIVILEGES ON ragdb.* TO 'raguser'@'localhost';
+FLUSH PRIVILEGES;
 ```
+To load the schema:
+```
+mysql -u raguser -p ragdb < ../mariadb/init.sql
+```
+#### 4. Create .env in app/
 
-OR run it in docker using:
-```
-Docker-compose up --build
-```
+You can base the .env off the .env.exaple, a valid api key for openAI is required
 
-Warning: the library sentence-transformers is quite and contains a fair amount of other dependencies. Consider using something like venv for development!
+#### 5. Run the app
+```
+streamlit run app_ui.py
+```
+UI should now be accessible on http://localhost:8501
+
+### Using the wiki-enhancer
+
+1. Load wikipedia articles (from .csv currently)
+2. Insert source text 
+3. Specify number of chunks to be returned, choose n chunks from ONE article
+4. Generate suggestions
 
