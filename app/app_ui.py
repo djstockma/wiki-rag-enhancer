@@ -1,6 +1,7 @@
 import streamlit as st
 from load_db import load_db
 from find_matches import find_matches, find_relevant_articles
+from generate_suggestions import suggest_wikipedia_additions
 
 def main():
     st.set_page_config(page_title="Wikipedia RAG enhancer", layout="wide")
@@ -91,11 +92,26 @@ def main():
                             "chunk_text": chunk[1]
                         })
 
-            if selected_data:
-                st.success(f"{len(selected_data)} chunks selected!")
-                st.write(selected_data)
-            else:
+            if not selected_data:
                 st.warning("Please select at least one chunk.")
+            else:
+                article_titles = list(set(d["article_title"] for d in selected_data))
+                if len(article_titles) > 1:
+                    st.error("Please select chunks from only one article.")
+                    return
+
+                article_title = article_titles[0]
+                context_chunks = [d["chunk_text"] for d in selected_data]
+
+                with st.spinner("Generating LLM suggestions..."):
+                    suggestions = suggest_wikipedia_additions(
+                        wiki_chunks=context_chunks,
+                        source_text=source_text,
+                    )
+
+                st.success("Suggestions generated!")
+                st.subheader("Suggested Additions to Wikipedia")
+                st.write(suggestions)
 
 if __name__ == "__main__":
     main()

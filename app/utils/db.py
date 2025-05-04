@@ -2,6 +2,9 @@ import mariadb
 import numpy as np
 import os
 import json
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def get_connection():
     return mariadb.connect(

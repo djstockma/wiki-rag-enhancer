@@ -1,6 +1,9 @@
-import openai
-from utils import get_logger
+from openai import OpenAI
+import os
+from dotenv import load_dotenv
+from utils.logging_config import get_logger
 
+load_dotenv()
 logger = get_logger()
 
 def suggest_wikipedia_additions(wiki_chunks: list[str], source_text: str, model="gpt-4o-mini") -> dict:
@@ -42,36 +45,29 @@ Source text:
 <<<
 {source_text}
 >>>"""
-
+    api_key = os.getenv("OPENAI_API_KEY")
+    client = OpenAI(api_key=api_key)
     # Send to OpenAI
-    response = openai.ChatCompletion.create(
+    response = client.responses.create(
         model=model,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are a factual assistant helping improve Wikipedia articles by comparing them "
-                    "to reliable sources and identifying missing but relevant content."
-                )
-            },
-            {
-                "role": "user",
-                "content": user_prompt
-            }
-        ],
-        temperature=0.3,  # Low temperature for reliability
+        instructions="You are a factual assistant helping improve Wikipedia articles by comparing them "
+                      "to reliable sources and identifying missing but relevant content. "
+                      "You generate the answers in the same language as the input.",
+        input=user_prompt
     )
 
     # Extract and try to parse the structured response
-    reply = response["choices"][0]["message"]["content"]
+    logger.info(response.output_text)
+    reply = response.output_text
 
     # Try to safely parse JSON if it's well-formed
     import json
     try:
         start = reply.find("{")
-        parsed = json.loads(reply[start:])
+        end = reply.rfind("}")
+        trimmed = reply[start:end + 1]
+        parsed = json.loads(trimmed)
         return parsed
     except Exception as e:
-        logger.warning("Warning: Could not parse JSON. Raw output:")
-        logger.warning(reply)
-        return {"error": "Failed to parse JSON", "raw_output": reply}
+        logger.warning("Warning: Could not parse JSON.")
+        return {"error": "Failed to parse JSON", "raw_output": reply, "trimmed": trimmed}
