@@ -4,6 +4,7 @@ from find_matches import find_matches, find_relevant_articles
 from generate_suggestions import suggest_wikipedia_additions
 from utils.logging_config import get_logger
 from utils.generate_markdown_diff import generate_markdown_diff
+from utils.parse_article import extract_article_text
 
 logger = get_logger()
 
@@ -11,7 +12,7 @@ def main():
     st.set_page_config(page_title="Wikipedia RAG enhancer", layout="wide")
     st.title("Wikipedia RAG enhancer")
 
-    st.header("Paste Source Text")
+    st.header("Paste Source Text or URL (http:// or https://) here")  
     source_text = st.text_area("Paste the source you want to use for improvement here:", height=400)
 
     st.sidebar.header("Settings")
@@ -32,7 +33,18 @@ def main():
         if not source_text:
             st.warning("Please paste some text first!")
             return
-
+        
+        if source_text.startswith("http://") or source_text.startswith("https://"):
+            try:
+                source_text = extract_article_text(source_text)
+                if source_text:
+                    st.success("Article content successfully extracted.")
+                    st.subheader("Extracted Article Content:")
+                    st.write(f"{source_text[0:200]}...")  # Display first 100 characters
+            except Exception as e:
+                st.error(f"Failed to extract article: {e}")
+                source_text = ""
+            
         grouped_matches = {}
         matches = find_matches(text=source_text, n_chunks=n_chunks_per_article)
         logger.info(f"Matches: {len(matches)}")
@@ -100,6 +112,7 @@ def main():
                         suggestion["improved_chunk"]
                     )
                     st.markdown(diff_markdown)
+                    st.markdown(f"**Justification:** {suggestion['justification']}")
 
                     # Uncomment if you want to see the full suggestion
                     #st.write(suggestion)
