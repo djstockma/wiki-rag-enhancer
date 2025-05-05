@@ -20,31 +20,44 @@ def get_titles(file_path: str) -> list:
 
 
 def embed_articles(conn, pages: dict, model, language="en") -> int:
-    for combined_title, section_text in pages.items():
+    for combined_title, combo in pages.items():
+        logger.info(f"Embedding {combo}")
+        if len(combo) == 2:
+            (section_text, edit_url) = combo
+        else:
+            (section_text, edit_url) = (combo, "no link available")
         chunks = chunk_text(section_text)
         embeddings = model.encode(chunks, convert_to_numpy=True)
         for idx, (chunk, vector) in enumerate(zip(chunks, embeddings)):
+
             insert_embedding(
                 conn,
                 title=combined_title,
                 chunk_index=idx,
                 chunk_text=chunk,
                 embedding=vector,
-                language=language
+                language=language,
+                edit_url=edit_url
             )
     return len(pages)
 
 def extract_sections(page, level=0):
     section_texts = []
 
-    def recurse(sections, parent_title=""):
+    def recurse(sections, parent_title="", section_number=0):
         for section in sections:
             # Create a hierarchical title (e.g., "Introduction > History")
             section_title = f"{parent_title} > {section.title}" if parent_title else section.title
             text = section.text.strip()
+
+            if section_number == 0:
+                edit_url = f"https://{page.language}.wikipedia.org/w/index.php?title={page.title}&action=edit"
+            else:
+                edit_url = f"https://{page.language}.wikipedia.org/w/index.php?title={page.title}&action=edit&section={section_number}"
+
             if text:
-                section_texts.append((section_title, text))
-            recurse(section.sections, parent_title=section_title)
+                section_texts.append((section_title, text, edit_url))
+            recurse(section.sections, parent_title=section_title, section_number=section_number + 1)
 
     recurse(page.sections)
     return section_texts
@@ -72,9 +85,9 @@ def fetch_pages_batch(titles, lang="en", batch_size=100, sleep_time=0.5) -> int:
             if page.exists():
                 pages[f"{title}"] = page.summary
                 section_texts = extract_sections(page)
-                for section_title, section_text in section_texts:
+                for section_title, section_text, edit_url in section_texts:
                     combined_title = f"{title} - {section_title}" if section_title else title
-                    pages[combined_title] = section_text
+                    pages[combined_title] = (section_text, edit_url)
                 total += 1
             else:
                 logger.info(f"Page not found: {title}")

@@ -6,5 +6,6 @@ CREATE TABLE wiki_embeddings (
     chunk_text TEXT,
     embedding VECTOR(384), -- assuming 384-dimensional embeddings
     language VARCHAR(10),
+    edit_url VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

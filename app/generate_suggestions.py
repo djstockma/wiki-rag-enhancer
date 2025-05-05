@@ -81,7 +81,6 @@ Source text:
         trimmed = reply[start:end + 1]
         parsed: dict = json.loads(trimmed)
         additions: list[dict] = parsed.get("proposed_additions")
-        logger.info(f"additions: {additions}")
         final_additions = []
         for addition in additions:
             # Ensure all required fields are present
@@ -98,8 +97,8 @@ Source text:
                 continue
 
             # Find matching chunk from wiki_chunks (assumes chunk_index is at index 4)
-            original_chunk = next(
-                (chunk["chunk_text"] for chunk in wiki_chunks if int(chunk["chunk_id"]) == chunk_id),
+            (original_chunk, edit_url) = next(
+                ((chunk["chunk_text"], chunk["edit_url"]) for chunk in wiki_chunks if int(chunk["chunk_id"]) == chunk_id),
                 None
             )
             if original_chunk is None:
@@ -107,6 +106,7 @@ Source text:
                 continue
             
             addition["original_chunk"] = original_chunk
+            addition["edit_url"] = edit_url
             final_additions.append(addition)
 
         return final_additions

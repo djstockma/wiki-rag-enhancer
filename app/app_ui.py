@@ -52,7 +52,6 @@ def main():
             
         grouped_matches = {}
         matches = find_matches(text=source_text, n_chunks=n_chunks_per_article)
-        logger.info(f"Matches: {len(matches)}")
         for match in matches:
             article_title = match[3]
             if article_title not in grouped_matches:
@@ -96,8 +95,8 @@ def main():
                             "chunk_text": chunk[1],
                             "chunk_index": chunk[4],
                             "chunk_id": chunk[0],
+                            "edit_url": chunk[6],
                         })
-
             if not selected_data:
                 st.warning("Please select at least one chunk.")
             else:
@@ -109,15 +108,13 @@ def main():
 
                 st.success("Suggestions generated!")
                 st.subheader("Suggested Additions to Wikipedia")
-                logger.info(f"Suggestions: {suggestions}")
                 for suggestion in suggestions:
-                    logger.info(f"Suggestion: {suggestion}")
                     diff_markdown = generate_markdown_diff(
                         suggestion["original_chunk"],
                         suggestion["improved_chunk"]
                     )
                     st.markdown(diff_markdown)
-                    st.markdown(f"**Justification:** {suggestion['justification']}")
+                    st.markdown(f"**Justification:** {suggestion['justification']}    **Edit [here]({suggestion['edit_url']})**")
 
                     # Uncomment if you want to see the full suggestion
                     #st.write(suggestion)

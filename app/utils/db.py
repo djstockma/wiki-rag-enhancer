@@ -19,17 +19,17 @@ def get_connection():
     )
 
 
-def insert_embedding(conn, title, chunk_index, chunk_text, embedding, language="en"):
+def insert_embedding(conn, title, chunk_index, chunk_text, embedding, language="en", edit_url=""):
     cur = conn.cursor()
     # Convert vector to list or binary as needed
     if isinstance(embedding, np.ndarray):
         embedding = embedding.tolist()
 
     query = """
-        INSERT INTO wiki_embeddings (article_title, chunk_index, chunk_text, embedding, language)
-        VALUES (?, ?, ?, Vec_FromText(?), ?)
+        INSERT INTO wiki_embeddings (article_title, chunk_index, chunk_text, embedding, language, edit_url)
+        VALUES (?, ?, ?, Vec_FromText(?), ?, ?)
     """
-    cur.execute(query, (title, chunk_index, chunk_text, embedding, language))
+    cur.execute(query, (title, chunk_index, chunk_text, embedding, language, edit_url))
     conn.commit()
 
 
@@ -43,7 +43,9 @@ def delete_embeddings(conn): #FIXME: this is not a god solution for prod maybe :
     conn.commit()
 
 
+
 def find_best_matches(conn, user_vector, n, articles: list[str] = []):
+
     cursor = conn.cursor()
 
     vector_str = json.dumps(user_vector.tolist())
@@ -57,7 +59,7 @@ def find_best_matches(conn, user_vector, n, articles: list[str] = []):
     params.append(vector_str) # For ORDER BY
     query = f"""
         SELECT id, chunk_text, embedding, article_title, chunk_index,
-            1 - VEC_DISTANCE_COSINE(embedding, VEC_FromText(?)) AS certainty
+            1 - VEC_DISTANCE_COSINE(embedding, VEC_FromText(?)) AS certainty, edit_url
         FROM wiki_embeddings
         {article_filter}
         ORDER BY VEC_DISTANCE_COSINE(embedding, VEC_FromText(?))
@@ -66,7 +68,6 @@ def find_best_matches(conn, user_vector, n, articles: list[str] = []):
     cursor.execute(query, params)  # Pass vector as string, and also article names
     result = cursor.fetchall()
     result_sorted = sorted(result, key=lambda x: (x[3], x[0]))  # (article_title, id)
-
     conn.close()
     return result_sorted
 
