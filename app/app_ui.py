@@ -41,9 +41,14 @@ def main():
                     st.success("Article content successfully extracted.")
                     st.subheader("Extracted Article Content:")
                     st.write(f"{source_text[0:200]}...")  # Display first 100 characters
+                else:
+                    st.error(f"Failed to extract article: {e}")
+                    source_text = ""
+                    return
             except Exception as e:
                 st.error(f"Failed to extract article: {e}")
                 source_text = ""
+                return
             
         grouped_matches = {}
         matches = find_matches(text=source_text, n_chunks=n_chunks_per_article)

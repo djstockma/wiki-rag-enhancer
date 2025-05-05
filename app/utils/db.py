@@ -71,7 +71,7 @@ def find_best_matches(conn, user_vector, n, articles: list[str] = []):
     return result_sorted
 
 
-def get_relevant_article_counts(conn, user_vector, n: int = 1000) -> dict[str, int]:
+def get_relevant_article_counts(conn, user_vector, n: int = 1000):
     """Returns a dict mapping where the key is the article name, 
     and the value is the number of appearances"""
     #FIXME: add normalisation based on number of article chunks somewhere?

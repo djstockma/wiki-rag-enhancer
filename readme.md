@@ -51,7 +51,8 @@ pip install -r requirements.txt
 
 For this project to work, wou will need mariadb-server 11.7+ (for vector to be included).  
 See https://mariadb.org/download for instructions on downloading the correct version
-
+(remember to also $ sudo apt install libmariadb3 libmariadb-dev
+)
 
 With mariadb installed, run
 ```
@@ -80,7 +81,7 @@ You can base the .env off the .env.exaple, a valid api key for openAI is require
 
 The UI app runs using streamlit. Start it by running:
 ```
-streamlit run app_ui.py
+python -m streamlit run app_ui.py
 ```
 UI should now be accessible on http://localhost:8501
 
