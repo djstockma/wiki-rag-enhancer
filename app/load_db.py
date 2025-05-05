@@ -24,27 +24,36 @@ def embed_articles(conn, pages: dict, model, language="en") -> int:
         chunks = chunk_text(section_text)
         embeddings = model.encode(chunks, convert_to_numpy=True)
         for idx, (chunk, vector) in enumerate(zip(chunks, embeddings)):
+            edit_url = section_text[2]
+
             insert_embedding(
                 conn,
                 title=combined_title,
                 chunk_index=idx,
                 chunk_text=chunk,
                 embedding=vector,
-                language=language
+                language=language,
+                edit_url=edit_url
             )
     return len(pages)
 
 def extract_sections(page, level=0):
     section_texts = []
 
-    def recurse(sections, parent_title=""):
+    def recurse(sections, parent_title="", section_number=0):
         for section in sections:
             # Create a hierarchical title (e.g., "Introduction > History")
             section_title = f"{parent_title} > {section.title}" if parent_title else section.title
             text = section.text.strip()
+
+            if section_number == 0:
+                edit_url = f"https://sv.wikipedia.org/w/index.php?title={page.title}&action=edit"
+            else:
+                edit_url = f"https://sv.wikipedia.org/w/index.php?title={page.title}&action=edit&section={section_number}"
+
             if text:
-                section_texts.append((section_title, text))
-            recurse(section.sections, parent_title=section_title)
+                section_texts.append((section_title, text, edit_url))
+            recurse(section.sections, parent_title=section_title, section_number=section_number + 1)
 
     recurse(page.sections)
     return section_texts

@@ -4,9 +4,12 @@ import os
 import json
 from dotenv import load_dotenv
 
+<<<<<<< HEAD
 from utils.logging_config import get_logger
 logger = get_logger()
 
+=======
+>>>>>>> wikipedia link
 load_dotenv()
 
 def get_connection():
@@ -26,8 +29,8 @@ def insert_embedding(conn, title, chunk_index, chunk_text, embedding, language="
         embedding = embedding.tolist()
 
     query = """
-        INSERT INTO wiki_embeddings (article_title, chunk_index, chunk_text, embedding, language)
-        VALUES (?, ?, ?, Vec_FromText(?), ?)
+        INSERT INTO wiki_embeddings (article_title, chunk_index, chunk_text, embedding, language, edit_url)
+        VALUES (?, ?, ?, Vec_FromText(?), ?, ?)
     """
     cur.execute(query, (title, chunk_index, chunk_text, embedding, language))
     conn.commit()
@@ -43,7 +46,11 @@ def delete_embeddings(conn): #FIXME: this is not a god solution for prod maybe :
     conn.commit()
 
 
+<<<<<<< HEAD
 def find_best_matches(conn, user_vector, n, articles: list[str] = []):
+=======
+def find_best_match(conn, user_vector, n, articles: list[str] = []) -> list[(str, str, str, str, str, str)]:
+>>>>>>> wikipedia link
     cursor = conn.cursor()
 
     vector_str = json.dumps(user_vector.tolist())
