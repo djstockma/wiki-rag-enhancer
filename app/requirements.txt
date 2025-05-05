@@ -6,4 +6,5 @@ streamlit
 torch
 openai
 dotenv
-
+lxml-html-clean
+newspaper3k
