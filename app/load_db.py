@@ -21,7 +21,6 @@ def get_titles(file_path: str) -> list:
 
 def embed_articles(conn, pages: dict, model, language="en") -> int:
     for combined_title, combo in pages.items():
-        logger.info(f"Embedding {combo}")
         if len(combo) == 2:
             (section_text, edit_url) = combo
         else:

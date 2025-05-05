@@ -92,3 +92,5 @@ UI should now be accessible on http://localhost:8501
 3. Specify number of chunks to be returned, choose n chunks from ONE article
 4. Generate suggestions
 
+### License
+This project is open source and available under the [MIT license](LICENSE)
