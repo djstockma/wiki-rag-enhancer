@@ -93,4 +93,4 @@ UI should now be accessible on http://localhost:8501
 4. Generate suggestions
 
 ### License
-This project is open source and available under the [MIT license](LICENSE)
+This project is open source and available under the [MIT license](LICENSE.txt)
